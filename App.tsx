@@ -6,13 +6,40 @@ import GalleryPanel from './components/GalleryPanel';
 import { Settings2, Bot, Sun, Moon, FileText, Sparkles, PlaySquare } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [settings, setSettings] = useState<ApiSettings>({
-    baseUrl: 'https://www.vivaapi.cn',
-    apiKey: '',
+  // Persistence: Settings
+  const [settings, setSettings] = useState<ApiSettings>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('viva_settings');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Error parsing saved settings:', e);
+        }
+      }
+    }
+    return {
+      baseUrl: 'https://www.vivaapi.cn',
+      apiKey: '',
+    };
   });
   
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [tasks, setTasks] = useState<VideoTask[]>([]);
+  
+  // Persistence: Tasks
+  const [tasks, setTasks] = useState<VideoTask[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('viva_tasks');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Error parsing saved tasks:', e);
+        }
+      }
+    }
+    return [];
+  });
   
   // Theme state
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
@@ -23,8 +50,20 @@ const App: React.FC = () => {
   // State to pre-fill CreatePanel (Regenerate or Create Character flow)
   const [createPanelState, setCreatePanelState] = useState<CreatePanelState | undefined>(undefined);
   
-  // Store created characters locally for the session
-  const [savedCharacters, setSavedCharacters] = useState<CreateCharacterResponse[]>([]);
+  // Persistence: Saved Characters
+  const [savedCharacters, setSavedCharacters] = useState<CreateCharacterResponse[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('viva_characters');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Error parsing saved characters:', e);
+        }
+      }
+    }
+    return [];
+  });
 
   // Apply theme class to document
   useEffect(() => {
@@ -34,6 +73,21 @@ const App: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  // Save Settings to LocalStorage
+  useEffect(() => {
+    localStorage.setItem('viva_settings', JSON.stringify(settings));
+  }, [settings]);
+
+  // Save Tasks to LocalStorage
+  useEffect(() => {
+    localStorage.setItem('viva_tasks', JSON.stringify(tasks));
+  }, [tasks]);
+
+  // Save Characters to LocalStorage
+  useEffect(() => {
+    localStorage.setItem('viva_characters', JSON.stringify(savedCharacters));
+  }, [savedCharacters]);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
